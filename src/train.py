@@ -1,10 +1,17 @@
 # %%
 import pandas as pd
 import numpy as np
-from sklearn import model_selection
-from sklearn import tree
 import matplotlib.pyplot as plt
 import seaborn as sns
+from feature_engine import (
+   discretisation,
+   encoding
+)
+from sklearn import (
+   tree,
+   model_selection,
+   linear_model,
+)
 from sklearn.metrics import (
     accuracy_score,
     precision_score,
@@ -13,6 +20,11 @@ from sklearn.metrics import (
     confusion_matrix,
     roc_curve
 )
+
+# %%
+pd.set_option('display.max_rows', 50)
+pd.set_option('display.max_columns', 50)
+pd.set_option('display.float_format', '{:.5f}'.format)
 
 # %%
 def avaliar_modelo(y_obs, y_pred, y_proba, pos_label=1):
@@ -26,6 +38,14 @@ def avaliar_modelo(y_obs, y_pred, y_proba, pos_label=1):
    cm = confusion_matrix(y_obs, y_pred)
    tn, fp, _, _ = cm.ravel()
    especificidade = tn / (tn + fp)   
+
+   # Mostrar métricas
+   print("\nMétricas de Classificação:")
+   print(f"Acurácia:        {acc*100:.2f}% (Quantas vezes o modelo acertou)")
+   print(f"Precisão:        {prec*100:.2f}% (Dos que o modelo disse que são positivos, quantos realmente são?)")
+   print(f"Recall (Sensib): {recall*100:.2f}% (Dos que realmente são positivos, quantos o modelo acertou?)")
+   print(f"Especificidade:  {especificidade*100:.2f}% (Dos que realmente são negativos, quantos o modelo acertou?)")
+   print(f"AUC ROC:         {auc*100:.2f}% (Capacidade geral do modelo de distinguir entre classes)")
 
    # Matriz de confusão com porcentagens
    cm = confusion_matrix(y_obs, y_pred)
@@ -45,15 +65,7 @@ def avaliar_modelo(y_obs, y_pred, y_proba, pos_label=1):
    plt.tight_layout()
    plt.show() 
 
-   # Mostrar métricas
-   print("\nMétricas de Classificação:")
-   print(f"Acurácia:        {acc*100:.2f}% (Quantas vezes o modelo acertou)")
-   print(f"Precisão:        {prec*100:.2f}% (Dos que o modelo disse que são positivos, quantos realmente são?)")
-   print(f"Recall (Sensib): {recall*100:.2f}% (Dos que realmente são positivos, quantos o modelo acertou?)")
-   print(f"Especificidade:  {especificidade*100:.2f}% (Dos que realmente são negativos, quantos o modelo acertou?)")
-   print(f"AUC ROC:         {auc*100:.2f}% (Capacidade geral do modelo de distinguir entre classes)")
    # Plot da curva ROC
-
    fpr, tpr, thresholds = roc_curve(y_obs, y_proba, pos_label=pos_label)
    plt.figure(figsize=(7, 5))
    sns.set_style("whitegrid")
@@ -74,12 +86,6 @@ def avaliar_modelo(y_obs, y_pred, y_proba, pos_label=1):
        "AUC": auc
 }
 
-# %%
-pd.set_option('display.max_rows', 50)
-pd.set_option('display.max_columns', 50)
-pd.set_option('display.float_format', '{:.5f}'.format)
-
-# %%
 def df_summary(df):
    if isinstance(df, pd.Series):
       df = df.to_frame()
@@ -221,8 +227,6 @@ plt.show()
 best_features = feature_importance[feature_importance['acum_pct'] <= 80]['features'].tolist()
 
 # %%
-from feature_engine import discretisation
-
 tree_discretization = (
    discretisation.DecisionTreeDiscretiser(
       variables=best_features,
@@ -236,8 +240,6 @@ tree_discretization.fit(X_train[best_features], y_train)
 X_train_transformed = tree_discretization.transform(X_train[best_features])
 
 # %%
-from sklearn import linear_model
-
 reg = (
    linear_model.LogisticRegression(
       penalty=None,
@@ -282,4 +284,3 @@ avaliar_modelo(
    y_oot_predict, 
    y_oot_proba
 )
-# %%
