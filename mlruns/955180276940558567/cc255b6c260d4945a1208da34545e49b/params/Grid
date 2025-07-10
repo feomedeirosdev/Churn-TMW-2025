@@ -1,0 +1,4 @@
+GridSearchCV(cv=3, estimator=BernoulliNB(),
+             param_grid={'alpha': [0.0, 0.5, 1.0], 'binarize': [0.0, 0.5, None],
+                         'fit_prior': [True, False, None]},
+             scoring='roc_auc', verbose=3)
