@@ -1,0 +1,6 @@
+artifact_location: mlflow-artifacts:/955180276940558567
+creation_time: 1752172206500
+experiment_id: '955180276940558567'
+last_update_time: 1752172206500
+lifecycle_stage: active
+name: churn-model-tmw

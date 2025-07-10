@@ -1,0 +1,15 @@
+artifact_uri: mlflow-artifacts:/955180276940558567/47bbdae150fc430e8195b32e3a96e22f/artifacts
+end_time: 1752175435704
+entry_point_name: ''
+experiment_id: '955180276940558567'
+lifecycle_stage: active
+run_id: 47bbdae150fc430e8195b32e3a96e22f
+run_name: peaceful-mouse-882
+run_uuid: 47bbdae150fc430e8195b32e3a96e22f
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1752174973848
+status: 3
+tags: []
+user_id: medeiros

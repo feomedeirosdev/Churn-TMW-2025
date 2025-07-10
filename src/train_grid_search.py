@@ -10,9 +10,8 @@ from feature_engine import (
 from sklearn import (
    model_selection,
    tree,
+   # ensemble,
    naive_bayes,
-   linear_model,
-   ensemble,
    pipeline,
    
 )
@@ -24,6 +23,11 @@ from sklearn.metrics import (
     confusion_matrix,
     roc_curve
 )
+
+# %%
+import mlflow
+mlflow.set_tracking_uri('http://127.0.0.1:5000/')
+mlflow.set_experiment(experiment_id='955180276940558567')
 
 # %%
 pd.set_option('display.max_rows', 50)
@@ -116,17 +120,28 @@ onehot = (
    ))
 
 # Modelo
+# model = (
+#    ensemble.RandomForestClassifier(
+#       random_state=42,
+#       n_jobs=1))
+
 model = (
-   ensemble.RandomForestClassifier(
-      random_state=42,
-      n_jobs=1))
+   naive_bayes.BernoulliNB()
+)
 
 # Hiperparametros
+# params = {
+#    'criterion': ['gini', 'entropy', 'log_loss'],
+#    'n_estimators': [500, 1000, 1500],
+#    'min_samples_leaf': [10, 20, 30],
+# }
+
 params = {
-   'criterion': ['gini', 'entropy', 'log_loss'],
-   'n_estimators': [100, 500, 1000],
-   'min_samples_leaf': [10, 20, 30],
+    'alpha': [0.0, 0.5, 1.0],              # Sem suavização, pouca, padrão
+    'binarize': [0.0, 0.5, None],          # Já binarizado, binariza meio a meio, não binariza
+    'fit_prior': [True, False, None],     # Aprende priors, usa informados, tenta auto
 }
+
 
 # Grid
 grid = model_selection.GridSearchCV(
@@ -142,47 +157,73 @@ modelo_pipeline = pipeline.Pipeline(
    steps=[
       ('Discretizar', tree_discretization),
       ('Onehot', onehot),
-      # ('Model', model),
       ('Grid', grid),
    ]
 )
 
-modelo_pipeline.fit(X_train[best_features], y_train)
+with mlflow.start_run():
+   mlflow.sklearn.autolog()
+   modelo_pipeline.fit(X_train[best_features], y_train)
 
-# TREINO
-y_train_predict = modelo_pipeline.predict(X_train[best_features])
-y_train_proba = modelo_pipeline.predict_proba(X_train[best_features])[:,1]
-cm_train = confusion_matrix(y_train, y_train_predict)
-tn_train, fp_train, _, _ = cm_train.ravel()
-acc_train = accuracy_score(y_train, y_train_predict)
-precision_train = precision_score(y_train, y_train_predict)
-recall_train = recall_score(y_train, y_train_predict)
-especificidade_train = tn_train / (tn_train + fp_train)
-auc_train = roc_auc_score(y_train, y_train_proba)
+   # TREINO
+   y_train_predict = modelo_pipeline.predict(X_train[best_features])
+   y_train_proba = modelo_pipeline.predict_proba(X_train[best_features])[:,1]
+   cm_train = confusion_matrix(y_train, y_train_predict)
+   tn_train, fp_train, _, _ = cm_train.ravel()
+   acc_train = accuracy_score(y_train, y_train_predict)
+   precision_train = precision_score(y_train, y_train_predict)
+   recall_train = recall_score(y_train, y_train_predict)
+   especificidade_train = tn_train / (tn_train + fp_train)
+   auc_train = roc_auc_score(y_train, y_train_proba)
 
-# TESTE
-y_test_predict = modelo_pipeline.predict(X_test[best_features])
-y_test_proba = modelo_pipeline.predict_proba(X_test[best_features])[:,1]
-cm_test = confusion_matrix(y_test, y_test_predict)
-tn_test, fp_test, _, _ = cm_test.ravel()
-acc_test = accuracy_score(y_test, y_test_predict)
-precision_test = precision_score(y_test, y_test_predict)
-recall_test = recall_score(y_test, y_test_predict)
-especificidade_test = tn_test / (tn_test + fp_test)
-auc_test = roc_auc_score(y_test, y_test_proba)
+   # TESTE
+   y_test_predict = modelo_pipeline.predict(X_test[best_features])
+   y_test_proba = modelo_pipeline.predict_proba(X_test[best_features])[:,1]
+   cm_test = confusion_matrix(y_test, y_test_predict)
+   tn_test, fp_test, _, _ = cm_test.ravel()
+   acc_test = accuracy_score(y_test, y_test_predict)
+   precision_test = precision_score(y_test, y_test_predict)
+   recall_test = recall_score(y_test, y_test_predict)
+   especificidade_test = tn_test / (tn_test + fp_test)
+   auc_test = roc_auc_score(y_test, y_test_proba)
 
-# OUT OF TIME
-X_oot = df_oot[best_features]
-y_oot = df_oot[target]
-y_oot_predict = modelo_pipeline.predict(X_oot[best_features])
-y_oot_proba = modelo_pipeline.predict_proba(X_oot[best_features])[:,1]
-cm_oot = confusion_matrix(y_oot, y_oot_predict)
-tn_oot, fp_oot, _, _ = cm_oot.ravel()
-acc_oot = accuracy_score(y_oot, y_oot_predict)
-precision_oot = precision_score(y_oot, y_oot_predict)
-recall_oot = recall_score(y_oot, y_oot_predict)
-especificidade_oot = tn_oot / (tn_oot + fp_oot)
-auc_oot = roc_auc_score(y_oot, y_oot_proba)
+   # OUT OF TIME
+   X_oot = df_oot[best_features]
+   y_oot = df_oot[target]
+   y_oot_predict = modelo_pipeline.predict(X_oot[best_features])
+   y_oot_proba = modelo_pipeline.predict_proba(X_oot[best_features])[:,1]
+   cm_oot = confusion_matrix(y_oot, y_oot_predict)
+   tn_oot, fp_oot, _, _ = cm_oot.ravel()
+   acc_oot = accuracy_score(y_oot, y_oot_predict)
+   precision_oot = precision_score(y_oot, y_oot_predict)
+   recall_oot = recall_score(y_oot, y_oot_predict)
+   especificidade_oot = tn_oot / (tn_oot + fp_oot)
+   auc_oot = roc_auc_score(y_oot, y_oot_proba)
+   
+   metrics = {
+      # Treino
+      'train_accuracy': acc_train,
+      'train_precision': precision_train,
+      'train_recall': recall_train,
+      'train_specificity': especificidade_train,
+      'train_auc': auc_train,
+      
+      # Teste
+      'test_accuracy': acc_test,
+      'test_precision': precision_test,
+      'test_recall': recall_test,
+      'test_specificity': especificidade_test,
+      'test_auc': auc_test,
+      
+      # OOT
+      'oot_accuracy': acc_oot,
+      'oot_precision': precision_oot,
+      'oot_recall': recall_oot,
+      'oot_specificity': especificidade_oot,
+      'oot_auc': auc_oot,
+   }
+
+   mlflow.log_metrics(metrics)
 
 # DATAFRAME
 dct_metricas = {
@@ -243,5 +284,6 @@ S_model = pd.Series({
    "model": modelo_pipeline,
    "features": best_features,
 })
-
 S_model.to_pickle("../data/S_model.pkl")
+
+

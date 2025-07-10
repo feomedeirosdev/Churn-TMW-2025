@@ -1,0 +1,15 @@
+artifact_uri: mlflow-artifacts:/955180276940558567/311a29f6baf5458faa3588b501365975/artifacts
+end_time: 1752173860706
+entry_point_name: ''
+experiment_id: '955180276940558567'
+lifecycle_stage: active
+run_id: 311a29f6baf5458faa3588b501365975
+run_name: funny-sloth-430
+run_uuid: 311a29f6baf5458faa3588b501365975
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1752173617573
+status: 3
+tags: []
+user_id: medeiros

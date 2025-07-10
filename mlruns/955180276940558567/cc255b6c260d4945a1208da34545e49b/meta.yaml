@@ -1,0 +1,15 @@
+artifact_uri: mlflow-artifacts:/955180276940558567/cc255b6c260d4945a1208da34545e49b/artifacts
+end_time: 1752176436504
+entry_point_name: ''
+experiment_id: '955180276940558567'
+lifecycle_stage: active
+run_id: cc255b6c260d4945a1208da34545e49b
+run_name: rumbling-jay-486
+run_uuid: cc255b6c260d4945a1208da34545e49b
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1752176396719
+status: 3
+tags: []
+user_id: medeiros
