@@ -121,40 +121,37 @@ model = (
       random_state=42,
       n_jobs=1))
 
-# Pipeline
-modelo_pipeline = (
-   pipeline.Pipeline(
-      steps=[
-         # ('Discretizar', tree_discretization),
-         # ('Onehot', onehot),
-         ('Model', model),
-      ]))
-
 # Hiperparametros
 params = {
-   'Model__criterion': ['gini', 'entropy', 'log_loss'],
-   'Model__n_estimators': [100, 200, 300, 500],
-   'Model__max_depth': [8, 12, 16],
-   'Model__min_samples_leaf': [15, 20, 25, 30],
+   'criterion': ['gini', 'entropy', 'log_loss'],
+   'n_estimators': [100, 500, 1000],
+   'min_samples_leaf': [10, 20, 30],
 }
 
 # Grid
 grid = model_selection.GridSearchCV(
-      modelo_pipeline,
-      param_grid=params,
-      cv=3,
-      scoring='roc_auc',
-      verbose=3
+   model,
+   param_grid=params,
+   cv=3,
+   scoring='roc_auc',
+   verbose=3
 )
 
-grid.fit(X_train[best_features], y_train)
+# Pipeline
+modelo_pipeline = pipeline.Pipeline(
+   steps=[
+      ('Discretizar', tree_discretization),
+      ('Onehot', onehot),
+      # ('Model', model),
+      ('Grid', grid),
+   ]
+)
 
-# %%
-# %%
+modelo_pipeline.fit(X_train[best_features], y_train)
 
 # TREINO
-y_train_predict = grid.predict(X_train[best_features])
-y_train_proba = grid.predict_proba(X_train[best_features])[:,1]
+y_train_predict = modelo_pipeline.predict(X_train[best_features])
+y_train_proba = modelo_pipeline.predict_proba(X_train[best_features])[:,1]
 cm_train = confusion_matrix(y_train, y_train_predict)
 tn_train, fp_train, _, _ = cm_train.ravel()
 acc_train = accuracy_score(y_train, y_train_predict)
@@ -164,8 +161,8 @@ especificidade_train = tn_train / (tn_train + fp_train)
 auc_train = roc_auc_score(y_train, y_train_proba)
 
 # TESTE
-y_test_predict = grid.predict(X_test[best_features])
-y_test_proba = grid.predict_proba(X_test[best_features])[:,1]
+y_test_predict = modelo_pipeline.predict(X_test[best_features])
+y_test_proba = modelo_pipeline.predict_proba(X_test[best_features])[:,1]
 cm_test = confusion_matrix(y_test, y_test_predict)
 tn_test, fp_test, _, _ = cm_test.ravel()
 acc_test = accuracy_score(y_test, y_test_predict)
@@ -177,8 +174,8 @@ auc_test = roc_auc_score(y_test, y_test_proba)
 # OUT OF TIME
 X_oot = df_oot[best_features]
 y_oot = df_oot[target]
-y_oot_predict = grid.predict(X_oot[best_features])
-y_oot_proba = grid.predict_proba(X_oot[best_features])[:,1]
+y_oot_predict = modelo_pipeline.predict(X_oot[best_features])
+y_oot_proba = modelo_pipeline.predict_proba(X_oot[best_features])[:,1]
 cm_oot = confusion_matrix(y_oot, y_oot_predict)
 tn_oot, fp_oot, _, _ = cm_oot.ravel()
 acc_oot = accuracy_score(y_oot, y_oot_predict)
@@ -217,7 +214,10 @@ fpr_oot, tpr_oot, _ = roc_curve(y_oot, y_oot_proba)
 plt.figure(figsize=(8, 6))
 
 # Curva Train
-plt.plot(fpr_train, tpr_train, label=f'Train AUC = {auc_train*100:.2f}%', color='blue')
+plt.plot(
+   fpr_train, 
+   tpr_train, 
+   label=f'Train AUC = {auc_train*100:.2f}%', color='blue')
 # Curva Test
 plt.plot(fpr_test, tpr_test, label=f'Test AUC = {auc_test*100:.2f}%', color='green')
 # Curva OOT
@@ -238,3 +238,10 @@ plt.show()
 # %%
 df_metricas # type: ignore
 
+# %%
+S_model = pd.Series({
+   "model": modelo_pipeline,
+   "features": best_features,
+})
+
+S_model.to_pickle("../data/S_model.plk")
