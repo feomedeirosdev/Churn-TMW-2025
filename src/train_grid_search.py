@@ -244,4 +244,4 @@ S_model = pd.Series({
    "features": best_features,
 })
 
-S_model.to_pickle("../data/S_model.plk")
+S_model.to_pickle("../data/S_model.pkl")
